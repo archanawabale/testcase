@@ -121,3 +121,65 @@ public class Transactions {
 	
 	
 }
+
+@Override
+	public void passbookD(Customer customer, double amt1) {
+		Transactions t1= new Transactions();
+		t1.setMobNo(customer.getMobNo());
+		t1.setBalance(customer.getInitialBal());
+		t1.setAmount(amt1);
+		Date date = new Date();
+		t1.setDate(String.valueOf(dateFormat.format(date)));
+		t1.setCredDeb("credit");
+		manager.getTransaction().begin();
+		manager.persist(t1);
+		manager.getTransaction().commit();		
+	}
+
+	@Override
+	public void passbookW(Customer customer, double amt) {
+		Transactions t2= new Transactions();
+		t2.setMobNo(customer.getMobNo());
+		t2.setBalance(customer.getInitialBal());
+		t2.setAmount(amt);
+		Date date = new Date();
+		t2.setDate(String.valueOf(dateFormat.format(date)));
+		t2.setCredDeb("debit");
+		manager.getTransaction().begin();
+		manager.persist(t2);
+		manager.getTransaction().commit();		
+	}
+
+	@Override
+	public void passbookF(Customer customer1, Customer customer2, double amt) {
+		manager.getTransaction().begin();
+		Transactions t3= new Transactions();
+		Transactions t4= new Transactions();
+		t3.setMobNo(customer1.getMobNo());
+		t3.setBalance(customer1.getInitialBal());
+		t3.setAmount(amt);
+		Date date = new Date();
+		t3.setDate(String.valueOf(dateFormat.format(date)));
+		t3.setCredDeb("debit");
+		manager.persist(t3);
+		t4.setMobNo(customer2.getMobNo());
+		t4.setBalance(customer2.getInitialBal());
+		t4.setAmount(amt);
+		t4.setDate(String.valueOf(dateFormat.format(date)));
+		t4.setCredDeb("credit");
+		manager.persist(t4);		
+		manager.getTransaction().commit();		
+	}
+
+	@Override
+	public List<Transactions> getTransList(String mobileNo) {
+		String qr = "select trans from Transactions trans where mobileNo ="+mobileNo;
+		TypedQuery<Transactions> query = manager.createQuery(qr, Transactions.class);
+		List<Transactions> list = query.getResultList();
+		return list;
+	}
+
+}
+
+	
+
