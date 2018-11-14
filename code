@@ -1,0 +1,80 @@
+package com.cg.project.test;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.cg.project.exception.BankException;
+import com.cg.project.service.BankServiceImpl;
+import com.cg.project.service.IBankService;
+
+public class TestBank {
+
+	//Test cases for name
+	@Test(expected=BankException.class)
+    public void test_ValidateName_null() throws BankException{
+        IBankService service=new BankServiceImpl();
+        service.validateName(null);
+    }
+    
+    @Test
+    public void test_validateName_v1() throws BankException{
+    
+        String name="Archa567";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateName(name);
+        Assert.assertEquals(false,result);
+    }
+    
+    @Test
+    public void test_validateName_v3() throws BankException{
+    
+        String name="archana";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateName(name);
+        Assert.assertEquals(false,result);
+    }
+    
+    @Test
+    public void test_validateName_v2() throws BankException{
+    
+        String name="Archana";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateName(name);
+        Assert.assertEquals(true,result);
+    }
+    
+    
+    //Test cases for mobile number
+    @Test(expected=BankException.class)
+    public void test_ValidateMobNo_null() throws BankException{
+        IBankService service=new BankServiceImpl();
+        service.validateMobileNo(null);
+    }
+    
+    @Test
+    public void test_validateMobNo_v1() throws BankException{
+    
+        String mobNo="ABCD54665254";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateMobileNo(mobNo);
+        Assert.assertEquals(false,result);
+    }
+   
+    @Test
+    public void test_validateMobNo_v3() throws BankException{
+    
+        String mobNo="95613";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateMobileNo(mobNo);
+        Assert.assertEquals(false,result);
+    }
+    
+    @Test
+    public void test_validateMobNo_v2() throws BankException{
+    
+        String mobNo="9865632251";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateMobileNo(mobNo);
+        Assert.assertEquals(true,result);
+    }
+	
+}
