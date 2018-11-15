@@ -1,185 +1,80 @@
-private static void printTransactions() {
-		// TODO Auto-generated method stub
-		System.out.println("Enter the moible id to print transactions");
-		mobileNo = sc.next();
-		try {
-			if(service.validateMobileNo(mobileNo))
-			{
-				if(service.validateAccount(mobileNo))
-				{
-					List<Transactions> listTransaction = new ArrayList<Transactions>();
-					IBankService s1 = new BankServiceImpl();
-					listTransaction = s1.getTransList(mobileNo);
-					System.out.println("MobNo 	 Cred/Deb 	 Amount 	Balance");
-					for(Transactions t : listTransaction){
-						System.out.println(t.getMobNo()+"	  "+t.getCredDeb()+"		 "+t.getAmount()+"		"+t.getBalance());
-					}
-				}else {
-					System.out.println("Cannot find account linked to: "+ mobileNo);
-				}
-			}
-		} catch (BankException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	@Override
-	public List<Transactions> getTransList(String mobileNo) {
-		String qr = "select trans from Transactions trans where mobileNo ="+mobileNo;
-		TypedQuery<Transactions> query = manager.createQuery(qr, Transactions.class);
-		List<Transactions> list = query.getResultList();
-		return list;
-	}
+package com.cg.project.test;
+import org.junit.Assert;
+import org.junit.Test;
 
-package com.cg.project.dto;
+import com.cg.project.exception.BankException;
+import com.cg.project.service.BankServiceImpl;
+import com.cg.project.service.IBankService;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+public class TestBank {
 
-
-@Entity
-@Table(name="Transactions")
-public class Transactions {
-
-	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
-	@Column(name="ID")
-	private int index;
-	
-	@Column(name="mobileno")
-	private String mobNo;
-	
-	@Column(name="creditORdebit")
-	private String credDeb;
-	
-	@Column(name="Balance")
-	private double balance;
-	
-	@Column(name="amount")
-	private double amount;
-	
-	@Column(name="transtime")
-	private String date;
-
-	public String getDate() {
-		return date;
-	}
-
-	public void setDate(String date) {
-		this.date = date;
-	}
-
-	public int getIndex() {
-		return index;
-	}
-
-	public void setIndex(int index) {
-		this.index = index;
-	}
-
-	public String getMobNo() {
-		return mobNo;
-	}
-
-	public void setMobNo(String mobNo) {
-		this.mobNo = mobNo;
-	}
-
-	public String getCredDeb() {
-		return credDeb;
-	}
-
-	public void setCredDeb(String credDeb) {
-		this.credDeb = credDeb;
-	}
-
-	public double getBalance() {
-		return balance;
-	}
-
-	public void setBalance(double balance) {
-		this.balance = balance;
-	}
-
-	public double getAmount() {
-		return amount;
-	}
-
-	public void setAmount(double amount) {
-		this.amount = amount;
-	}
-
-	public Transactions() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
-	
+	//Test cases for name
+	@Test(expected=BankException.class)
+    public void test_ValidateName_null() throws BankException{
+        IBankService service=new BankServiceImpl();
+        service.validateName(null);
+    }
+    
+    @Test
+    public void test_validateName_v1() throws BankException{
+    
+        String name="Archa567";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateName(name);
+        Assert.assertEquals(false,result);
+    }
+    
+    @Test
+    public void test_validateName_v3() throws BankException{
+    
+        String name="archana";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateName(name);
+        Assert.assertEquals(false,result);
+    }
+    
+    @Test
+    public void test_validateName_v2() throws BankException{
+    
+        String name="Archana";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateName(name);
+        Assert.assertEquals(true,result);
+    }
+    
+    
+    //Test cases for mobile number
+    @Test(expected=BankException.class)
+    public void test_ValidateMobNo_null() throws BankException{
+        IBankService service=new BankServiceImpl();
+        service.validateMobileNo(null);
+    }
+    
+    @Test
+    public void test_validateMobNo_v1() throws BankException{
+    
+        String mobNo="ABCD54665254";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateMobileNo(mobNo);
+        Assert.assertEquals(false,result);
+    }
+   
+    @Test
+    public void test_validateMobNo_v3() throws BankException{
+    
+        String mobNo="95613";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateMobileNo(mobNo);
+        Assert.assertEquals(false,result);
+    }
+    
+    @Test
+    public void test_validateMobNo_v2() throws BankException{
+    
+        String mobNo="9865632251";
+        IBankService service=new BankServiceImpl();
+        boolean result= service.validateMobileNo(mobNo);
+        Assert.assertEquals(true,result);
+    }
 	
 }
-
-@Override
-	public void passbookD(Customer customer, double amt1) {
-		Transactions t1= new Transactions();
-		t1.setMobNo(customer.getMobNo());
-		t1.setBalance(customer.getInitialBal());
-		t1.setAmount(amt1);
-		Date date = new Date();
-		t1.setDate(String.valueOf(dateFormat.format(date)));
-		t1.setCredDeb("credit");
-		manager.getTransaction().begin();
-		manager.persist(t1);
-		manager.getTransaction().commit();		
-	}
-
-	@Override
-	public void passbookW(Customer customer, double amt) {
-		Transactions t2= new Transactions();
-		t2.setMobNo(customer.getMobNo());
-		t2.setBalance(customer.getInitialBal());
-		t2.setAmount(amt);
-		Date date = new Date();
-		t2.setDate(String.valueOf(dateFormat.format(date)));
-		t2.setCredDeb("debit");
-		manager.getTransaction().begin();
-		manager.persist(t2);
-		manager.getTransaction().commit();		
-	}
-
-	@Override
-	public void passbookF(Customer customer1, Customer customer2, double amt) {
-		manager.getTransaction().begin();
-		Transactions t3= new Transactions();
-		Transactions t4= new Transactions();
-		t3.setMobNo(customer1.getMobNo());
-		t3.setBalance(customer1.getInitialBal());
-		t3.setAmount(amt);
-		Date date = new Date();
-		t3.setDate(String.valueOf(dateFormat.format(date)));
-		t3.setCredDeb("debit");
-		manager.persist(t3);
-		t4.setMobNo(customer2.getMobNo());
-		t4.setBalance(customer2.getInitialBal());
-		t4.setAmount(amt);
-		t4.setDate(String.valueOf(dateFormat.format(date)));
-		t4.setCredDeb("credit");
-		manager.persist(t4);		
-		manager.getTransaction().commit();		
-	}
-
-	@Override
-	public List<Transactions> getTransList(String mobileNo) {
-		String qr = "select trans from Transactions trans where mobileNo ="+mobileNo;
-		TypedQuery<Transactions> query = manager.createQuery(qr, Transactions.class);
-		List<Transactions> list = query.getResultList();
-		return list;
-	}
-
-}
-
-	
-
