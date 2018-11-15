@@ -1,0 +1,169 @@
+package com.cg.project.dao;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.TypedQuery;
+
+import com.cg.project.dto.Customer;
+import com.cg.project.dto.Transactions;
+import com.cg.project.exception.BankException;
+
+public class BankDaoImpl implements IBankDao {
+
+	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	EntityManager manager;
+	
+	public BankDaoImpl(){
+		EntityManagerFactory fact= Persistence.createEntityManagerFactory("JPA-PU");
+		manager =fact.createEntityManager();
+	}
+	
+	@Override
+	public void createAccount(Customer customer){
+		manager.getTransaction().begin();
+		manager.persist(customer);
+		Transactions t5= new Transactions();
+		t5.setMobNo(customer.getMobNo());
+		t5.setAmount(0);
+		t5.setCredDeb("credit");
+		t5.setBalance(customer.getInitialBal());
+		Date date = new Date();
+		t5.setDate(String.valueOf(dateFormat.format(date)));
+		manager.persist(t5);
+		manager.getTransaction().commit();
+		System.out.println("Customer is added!!\nName: "+customer.getName()+"\nMobile number: "+customer.getMobNo()+"\nAge: "+customer.getAge()+"\nBalance: "+customer.getInitialBal());
+	}
+	
+	@Override
+	public void deposit(String mobNo, double amount) {
+		manager.getTransaction().begin();
+		Customer cust = manager.find(Customer.class, mobNo);
+		double newAmt =cust.getInitialBal();
+		newAmt=newAmt+amount;
+		cust.setInitialBal(newAmt);
+		manager.getTransaction().commit();
+		passbookDeposit(cust,amount);
+		System.out.println("Amount is deposited! New balance is : "+newAmt);
+	}
+	
+	@Override
+	public void withdraw(String mobNo, double amount) {
+		manager.getTransaction().begin();
+		Customer cust = manager.find(Customer.class, mobNo);
+		double newAmt =cust.getInitialBal();
+		if(newAmt-amount>=100){
+			newAmt=newAmt-amount;
+			cust.setInitialBal(newAmt);
+			manager.getTransaction().commit();
+			passbookWithdraw(cust, amount);
+			System.out.println("Amount withdrawn! New balance is : "+newAmt);
+		}
+		else{
+			System.out.println("Cannot withdraw! \nMinimum balance of Rs.100 should be maintained");
+		}
+	}
+	
+	@Override
+	public double checkBalance(String mobNo) {
+		Customer cust = manager.find(Customer.class, mobNo);
+		double newAmt =cust.getInitialBal();
+		System.out.println(newAmt);
+		return newAmt;
+	}
+
+	@Override
+	public void fundTransfer(String sender, String reciever, double amount) {
+		manager.getTransaction().begin();
+		Customer cust1 = manager.find(Customer.class, sender);
+		double newAmt1 =cust1.getInitialBal();
+		Customer cust2 = manager.find(Customer.class, reciever);
+		double newAmt2 =cust2.getInitialBal();
+		if(newAmt1-amount>=100){
+			newAmt1=newAmt1-amount;
+			newAmt2=newAmt2+amount;
+			cust1.setInitialBal(newAmt1);
+			cust2.setInitialBal(newAmt2);
+			manager.getTransaction().commit();
+			System.out.println("Amount transferred!\nNew balance in "+sender+" account is "+newAmt1);
+			passbookFundTrans(cust1, cust2, amount);
+		}
+		else{
+			System.out.println("Cannot tranfer! Sender has to maintain minimum balance of Rs.100");
+		}
+	}
+			
+	public boolean validateAccount(String mobNo){
+		Customer cust3=manager.find(Customer.class, mobNo);
+		if(cust3==null)
+			return false;
+		return true;
+	}
+	
+	@Override
+	public void passbookDeposit(Customer customer, double newAmt1) {
+		Transactions t1= new Transactions();
+		t1.setMobNo(customer.getMobNo());
+		t1.setBalance(customer.getInitialBal());
+		t1.setAmount(newAmt1);
+		Date date = new Date();
+		t1.setDate(String.valueOf(dateFormat.format(date)));
+		t1.setCredDeb("credit");
+		manager.getTransaction().begin();
+		manager.persist(t1);
+		manager.getTransaction().commit();		
+	}
+
+	@Override
+	public void passbookWithdraw(Customer customer, double newAmt) {
+		manager.getTransaction().begin();
+		Transactions t2= new Transactions();
+		t2.setMobNo(customer.getMobNo());
+		t2.setBalance(customer.getInitialBal());
+		t2.setAmount(newAmt);
+		Date date = new Date();
+		t2.setDate(String.valueOf(dateFormat.format(date)));
+		t2.setCredDeb("debit");
+		manager.persist(t2);
+		manager.getTransaction().commit();		
+	}
+
+	@Override
+	public void passbookFundTrans(Customer cust1, Customer cust2, double amt) {
+		manager.getTransaction().begin();
+		Transactions t3= new Transactions();
+		Transactions t4= new Transactions();
+		t3.setMobNo(cust1.getMobNo());
+		t3.setBalance(cust1.getInitialBal());
+		t3.setAmount(amt);
+		Date date = new Date();
+		t3.setDate(String.valueOf(dateFormat.format(date)));
+		t3.setCredDeb("debit");
+		manager.persist(t3);
+		t4.setMobNo(cust2.getMobNo());
+		t4.setBalance(cust2.getInitialBal());
+		t4.setAmount(amt);
+		t4.setDate(String.valueOf(dateFormat.format(date)));
+		t4.setCredDeb("credit");
+		manager.persist(t4);		
+		manager.getTransaction().commit();		
+	}
+
+	@Override
+	public List<Transactions> getTransList(String mobileNo) {
+		String qr = "select trans from Transactions trans where mobileNo ="+mobileNo;
+		TypedQuery<Transactions> query = manager.createQuery(qr, Transactions.class);
+		List<Transactions> list = query.getResultList();
+		return list;
+	}
+
+}
+
+	
